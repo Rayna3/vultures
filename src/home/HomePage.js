@@ -1,9 +1,11 @@
+// src/home/HomePage.jsx
 import React from 'react';
-import { useAuth } from '../auth/AuthProvider'; // To access current user and logout
-import { auth } from '../firebase/config'; // To perform logout
+import { useAuth } from '../auth/AuthProvider';
+import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom'; // For programmatic navigation
-import { getAvailableGroceries } from '../components/grocery-actions';
+import { useNavigate } from 'react-router-dom';
+
+import ChatBox from '../chatbot/chatbox';      // 👈 NEW import
 
 function HomePage() {
   const { currentUser } = useAuth();
@@ -12,7 +14,7 @@ function HomePage() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/login'); // Redirect to login after logout
+      navigate('/login');
     } catch (error) {
       console.error('Logout Error:', error);
       alert('Failed to log out: ' + error.message);
@@ -20,31 +22,42 @@ function HomePage() {
   };
 
   return (
-    <div style={homePageStyles.container}>
-      <div style={homePageStyles.header}>
-        <h1>Welcome to the Food Share!</h1>
-        {currentUser && <p>Logged in as: <strong>{currentUser.email}</strong></p>}
-        <button onClick={handleLogout} style={homePageStyles.logoutButton}>
+    <div style={styles.container}>
+      {/* ---------- Header ---------- */}
+      <div style={styles.header}>
+        <h1>Welcome to the Food Share!</h1>
+        {currentUser && (
+          <p>
+            Logged in as: <strong>{currentUser.email}</strong>
+          </p>
+        )}
+        <button onClick={handleLogout} style={styles.logoutButton}>
           Logout
         </button>
       </div>
 
-      <div style={homePageStyles.content}>
-        <p>This is your home page. Here you'll be able to:</p>
+      {/* ---------- Main Content ---------- */}
+      <div style={styles.content}>
+        <p>This is your home page. Here you can:</p>
         <ul>
           <li>Upload groceries you want to share</li>
           <li>Browse and claim available groceries</li>
           <li>Get recipe recommendations</li>
           <li>Manage your shared and claimed items</li>
         </ul>
-        <p>Start by navigating to the "Upload" or "Browse" sections!</p>
+        <p>Start by navigating to the “Upload” or “Browse” sections!</p>
       </div>
-      {/* You'll add links to other features here later */}
+
+      {/* ---------- ChatBox Section ---------- */}
+      <div style={styles.chatSection}>
+        <h2>Ask FridgeBot</h2>
+        <ChatBox />        {/* 👈 NEW component */}
+      </div>
     </div>
   );
 }
 
-const homePageStyles = {
+const styles = {
   container: {
     padding: '20px',
     fontFamily: 'Arial, sans-serif',
@@ -74,8 +87,13 @@ const homePageStyles = {
   content: {
     lineHeight: '1.6',
     color: '#333',
+    marginBottom: '40px',
   },
-  // Add more styles as you build out features
+  /* ---------- NEW styles for chat ---------- */
+  chatSection: {
+    borderTop: '1px solid #eee',
+    paddingTop: '20px',
+  },
 };
 
 export default HomePage;
