@@ -4,8 +4,18 @@ import { AuthProvider } from './auth/AuthProvider'; // Import AuthProvider
 import PrivateRoute from './components/PrivateRoute'; // Import PrivateRoute
 import AuthScreen from './auth/AuthScreen'; // Import AuthScreen
 import HomePage from './home/HomePage'; // Import HomePage
+import Recipes from './home/recipes';
 
 function App() {
+  // return (
+  //   <Router>
+  //     <Routes>
+  //       <Route path="/" element={<HomePage />} /> {/* This is your home page route */}
+  //       {/* <Route path="/about" element={<About />} /> */}
+  //       {/* Add other routes for different pages */}
+  //     </Routes>
+  //   </Router>
+  // );
   return (
     <Router>
       <AuthProvider> {/* Wrap your entire app with AuthProvider */}
@@ -17,6 +27,7 @@ function App() {
           {/* Everything inside this Route will be protected by PrivateRoute */}
           <Route element={<PrivateRoute />}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/recipes" element={<Recipes />} /> 
             {/* Add more private routes here later, e.g., /upload, /browse */}
           </Route>
 

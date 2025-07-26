@@ -16,12 +16,20 @@ export async function getAvailableGroceries(): Promise<Grocery[]> {
 const addGrocerySchema = z.object({
   name: z.string().min(1, 'Name must have at least 1 character'),
   description: z.string().min(0),
+  amount: z.number().min(1, 'Amount must be at least 1'),
+  unit: z.string().min(0),
+  expiry: z.string().min(1, 'Expiration date must be listed')
 });
 
 export async function addGrocery(formData: FormData) {
+  // const { currentUser } = useAuth();
+
   const validatedFields = addGrocerySchema.safeParse({
     name: formData.get('name'),
     description: formData.get('description'),
+    quantity: formData.get('amount'),
+    units: formData.get('unit'),
+    expiry: formData.get('expiry')
   });
 
   if (!validatedFields.success) {
@@ -29,17 +37,16 @@ export async function addGrocery(formData: FormData) {
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
-  
+
   const newGrocery = {
     name: validatedFields.data.name,
     description: validatedFields.data.description,
-    imageUrl: 'https://placehold.co/600x400.png',
-    uploader: {
-      name: 'CurrentUser', // This would be dynamic in a real app with auth
-      avatarUrl: 'https://placehold.co/40x40.png',
-    },
+    uploader: "n/a",
+    quantity: validatedFields.data.amount,
+    units: validatedFields.data.unit,
     claimed: false,
     createdAt: serverTimestamp(),
+    expiry: validatedFields.data.expiry
   };
 
   await addDoc(collection(db, 'groceries'), newGrocery);
