@@ -1,7 +1,7 @@
 // src/features/recipes/Recipes.js
 import React, { useState, useEffect, CSSProperties } from 'react';
 import { db } from '../firebase/config';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, DocumentData } from 'firebase/firestore'; // Import DocumentData
 import { Grocery } from '../components/types';
 
 function Recipes() {
@@ -21,10 +21,23 @@ function Recipes() {
         const querySnapshot = await getDocs(collection(db, 'groceries'));
         const items: Grocery[] = [];
         querySnapshot.forEach((doc) => {
-          items.push({ id: doc.id, ...doc.data() as Omit<Grocery, 'id'> });
+          const data = doc.data() as DocumentData;
+          items.push({
+            id: doc.id,
+            name: (data.name || '') as string,
+            amount: (data.amount || 0) as number,
+            unit: (data.unit || '') as string,
+            expiry: (data.expiry || '') as string, 
+            description: (data.description ?? null) as string | null,
+            imageUrl: (data.imageUrl ?? null) as string | null,
+            uploader: (data.uploader ?? null) as Grocery['uploader'],
+            claimed: (data.claimed ?? false) as boolean | null, // Ensure claimed is correctly typed
+            createdAt: (data.createdAt ?? null) as any | null,
+            category: (data.category ?? null) as string | null,
+          });
         });
         setCommonFridgeItems(items);
-        console.log('Fetched common fridge items:', items.map(item => item.name));
+        console.log('Fetched all common fridge items:', items.map(item => `${item.name} (Claimed: ${item.claimed})`));
       } catch (err) {
         console.error('Error fetching common fridge items:', err);
         setError('Failed to load common fridge items.');
@@ -38,8 +51,14 @@ function Recipes() {
   useEffect(() => {
     const uniqueCombined = new Map<string, {name: string, isPersonal: boolean}>();
 
-    // Add common fridge items
-    commonFridgeItems.forEach(item => {
+    // --- MODIFICATION START ---
+    // Filter common fridge items to include only those that are NOT claimed
+    const availableCommonFridgeItems = commonFridgeItems.filter(item => !item.claimed);
+    console.log('Available (unclaimed) common fridge items for recipe search:', availableCommonFridgeItems.map(item => item.name));
+
+    // Add ONLY available common fridge items
+    availableCommonFridgeItems.forEach(item => {
+    // --- MODIFICATION END ---
       const lowerName = item.name.toLowerCase();
       if (!uniqueCombined.has(lowerName)) { // Add only if not already present
         uniqueCombined.set(lowerName, { name: item.name, isPersonal: false });
@@ -58,7 +77,7 @@ function Recipes() {
 
     setCombinedIngredients(Array.from(uniqueCombined.values()));
     console.log('Combined ingredients for API (with source):', Array.from(uniqueCombined.values()).map(item => item.name).join(', '));
-  }, [commonFridgeItems, personalIngredientsInput]);
+  }, [commonFridgeItems, personalIngredientsInput]); // Dependency on commonFridgeItems
 
   // --- Step 5: Integrate with a free recipes API ---
   const SPOONACULAR_API_KEY = 'e3188e777c734f378968cdb8cddfa03f'; // <<< REPLACE WITH YOUR ACTUAL KEY
@@ -95,7 +114,6 @@ function Recipes() {
       }
       const data = await response.json();
 
-      // --- MINIMAL CHANGE START ---
       // Augment the recipe data to include 'isPersonal' flag for used ingredients
       const augmentedRecipes = data.map((recipe: any) => {
           const augmentedUsedIngredients = recipe.usedIngredients.map((usedIng: any) => {
@@ -113,7 +131,6 @@ function Recipes() {
           };
       });
       setRecipes(augmentedRecipes);
-      // --- MINIMAL CHANGE END ---
       console.log('Fetched recipes:', augmentedRecipes); // Log augmented data
 
       const usedIngredientNamesInResults = new Set<string>();
@@ -146,11 +163,11 @@ function Recipes() {
 
       {/* Common Fridge Items Display */}
       <div style={styles.section}>
-        <h2 style={styles.subHeader}>Common Fridge Items:</h2>
-        {commonFridgeItems.length === 0 ? (
-          <p>No common items found or loading...</p>
+        <h2 style={styles.subHeader}>Common Fridge Items (Unclaimed):</h2>
+        {commonFridgeItems.filter(item => !item.claimed).length === 0 ? (
+          <p>No unclaimed common items found or loading...</p>
         ) : (
-          <p>{commonFridgeItems.map(item => item.name).join(', ')}</p>
+          <p>{commonFridgeItems.filter(item => !item.claimed).map(item => item.name).join(', ')}</p>
         )}
       </div>
 
@@ -194,14 +211,12 @@ function Recipes() {
             {recipe.usedIngredientCount > 0 && (
               <p>
                 Using:{' '}
-                {/* --- MINIMAL CHANGE START --- */}
                 {recipe.usedIngredients.map((ing: any, idx: number) => (
                   <React.Fragment key={ing.id || ing.name}>
                     {ing.isPersonal ? <strong>{ing.name}</strong> : ing.name}
                     {idx < recipe.usedIngredients.length - 1 && ', '}
                   </React.Fragment>
                 ))}
-                {/* --- MINIMAL CHANGE END --- */}
               </p>
             )}
             <p>Missing Ingredients: {recipe.missedIngredientCount}</p>

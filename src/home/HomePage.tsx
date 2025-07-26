@@ -1,35 +1,12 @@
-import React, {useState, useEffect, CSSProperties, ReactElement} from 'react';
+import React, {useState, useEffect, CSSProperties, ReactElement} from 'react'; // ReactElement might not be needed after fix
 import { useAuth } from '../auth/AuthProvider';
 import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import HomeGroceryPage from './grocery-pages';
-import ChatBox from '../chatbot/chatbox';  // ← import your ChatBox
+import HomeGroceryPage from './grocery-pages'; // Import the component itself
+import ChatBox from '../chatbot/chatbox';
 
-function FetchGroceryPage() {
-  const [data, setData] = useState<ReactElement | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<any | null>(null);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const result = await HomeGroceryPage();
-        setData(result);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-  return data;
-}
+// Remove FetchGroceryPage here, as it's causing the issue and is redundant
 
 export default function HomePage() {
   const { currentUser } = useAuth();
@@ -59,7 +36,6 @@ export default function HomePage() {
         >
           Go to Recipe Finder
         </button>
-        {/* Changed text and navigation path for adding groceries */}
         <button onClick={() => navigate('/add-grocery')} style={{ ...homePageStyles.logoutButton, backgroundColor: '#28a745', marginLeft: '10px' }}>
             Add New Grocery
         </button>
@@ -83,7 +59,8 @@ export default function HomePage() {
       {/* Grocery Page */}
       <div style={homePageStyles.section}>
         <h2>Available Groceries</h2>
-        <FetchGroceryPage />
+        {/* Directly render HomeGroceryPage as a component */}
+        <HomeGroceryPage /> 
       </div>
 
       {/* ChatBox Section */}
