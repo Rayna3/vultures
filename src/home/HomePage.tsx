@@ -1,20 +1,22 @@
-import React, {useState, useEffect, CSSProperties, ReactElement} from 'react';
-import { useAuth } from '../auth/AuthProvider'; // To access current user and logout
-import { auth } from '../firebase/config'; // To perform logout
+// src/home/HomePage.tsx
+import React, { useState, useEffect, CSSProperties, ReactElement } from 'react';
+import { useAuth } from '../auth/AuthProvider';
+import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom'; // For programmatic navigation
+import { useNavigate } from 'react-router-dom';
 import HomeGroceryPage from './grocery-pages';
+import ChatBox from '../chatbot/chatbox';  // ← import your ChatBox
 
 function FetchGroceryPage() {
   const [data, setData] = useState<ReactElement | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<any | null >(null);
+  const [error, setError] = useState<any | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const result = await HomeGroceryPage(); // Call the async function
+        const result = await HomeGroceryPage();
         setData(result);
       } catch (err) {
         setError(err);
@@ -22,32 +24,26 @@ function FetchGroceryPage() {
         setLoading(false);
       }
     };
-
     loadData();
-  }, []); // Empty dependency array means this effect runs once after initial render
+  }, []);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
-
-  return data
+  return data;
 }
 
-function HomePage() {
+export default function HomePage() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/login'); // Redirect to login after logout
+      navigate('/login');
     } catch (error) {
       console.error('Logout Error:', error);
-      if (error instanceof Error) { // Type guard: check if 'error' is an instance of Error
-        alert('Failed to log out: ' + error.message);
-      } else {
-        // If it's not an Error object, provide a generic message
-        alert('Failed to log out: An unknown error occurred.');
-      }
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      alert('Failed to log out: ' + msg);
     }
   };
 
@@ -55,11 +51,17 @@ function HomePage() {
     <div style={homePageStyles.container}>
       <div style={homePageStyles.header}>
         <h1>Welcome to Vultures!</h1>
-        <button onClick={() => navigate('/recipes')} style={{ ...homePageStyles.logoutButton, backgroundColor: '#6c757d' }}>
-            Go to Recipe Finder
+        <button
+          onClick={() => navigate('/recipes')}
+          style={{ ...homePageStyles.logoutButton, backgroundColor: '#6C757D' }}
+        >
+          Go to Recipe Finder
         </button>
-        
-        {currentUser && <p>Logged in as: <strong>{currentUser.email}</strong></p>}
+        {currentUser && (
+          <p>
+            Logged in as: <strong>{currentUser.email}</strong>
+          </p>
+        )}
         <button onClick={handleLogout} style={homePageStyles.logoutButton}>
           Logout
         </button>
@@ -74,9 +76,18 @@ function HomePage() {
           <li>Manage your shared and claimed items</li>
         </ul>
       </div>
-      {/* You'll add links to other features here later */}
 
-      <FetchGroceryPage />
+      {/* Grocery Page */}
+      <div style={homePageStyles.section}>
+        <h2>Available Groceries</h2>
+        <FetchGroceryPage />
+      </div>
+
+      {/* ChatBox Section */}
+      <div style={homePageStyles.chatSection}>
+        <h2>Ask FridgeBot</h2>
+        <ChatBox />
+      </div>
     </div>
   );
 }
@@ -87,7 +98,7 @@ const homePageStyles: { [key: string]: CSSProperties } = {
     fontFamily: 'Arial, sans-serif',
     maxWidth: '800px',
     margin: '0 auto',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     borderRadius: '8px',
     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)',
     marginTop: '40px',
@@ -111,8 +122,14 @@ const homePageStyles: { [key: string]: CSSProperties } = {
   content: {
     lineHeight: '1.6',
     color: '#333',
+    marginBottom: '40px',
   },
-  // Add more styles as you build out features
+  section: {
+    marginBottom: '40px',
+  },
+  chatSection: {
+    borderTop: '1px solid #eee',
+    paddingTop: '20px',
+    marginBottom: '40px',
+  },
 };
-
-export default HomePage;
