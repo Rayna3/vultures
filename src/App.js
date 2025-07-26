@@ -6,6 +6,15 @@ import AuthScreen from './auth/AuthScreen'; // Import AuthScreen
 import HomePage from './home/HomePage'; // Import HomePage
 
 function App() {
+  // return (
+  //   <Router>
+  //     <Routes>
+  //       <Route path="/" element={<HomePage />} /> {/* This is your home page route */}
+  //       {/* <Route path="/about" element={<About />} /> */}
+  //       {/* Add other routes for different pages */}
+  //     </Routes>
+  //   </Router>
+  // );
   return (
     <Router>
       <AuthProvider> {/* Wrap your entire app with AuthProvider */}
