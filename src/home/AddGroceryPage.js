@@ -1,30 +1,28 @@
-// src/features/groceries/AddGroceryPage.js (or similar path)
+// src/features/groceries/AddGroceryPage.js
 import React, { useState, CSSProperties } from 'react';
 import { db } from '../firebase/config'; // Adjust path if necessary
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../auth/AuthProvider'; // Adjust path if necessary
-
-// Assuming Grocery type is defined in src/components/types.ts
-// If you are using TypeScript and this file is meant to be .tsx, then change its extension.
-// Otherwise, remove type annotations as shown below.
+import { useAuth } from '../auth/AuthProvider';
 
 function AddGroceryPage() {
-  const { currentUser } = useAuth(); // Get current user from AuthProvider
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
-  const [amount, setAmount] = useState(''); // Changed to string for input type="number"
-  const [unit, setUnit] = useState('pcs'); // Default unit
-  const [expiry, setExpiry] = useState(''); // Date string
+  const [amount, setAmount] = useState('');
+  const [unit, setUnit] = useState('pcs');
+  const [expiry, setExpiry] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  // --- NEW STATE FOR CATEGORY ---
+  const [category, setCategory] = useState(''); // Default to empty string or a default category
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null); // Removed :string | null
-  const [success, setSuccess] = useState(null); // Removed :string | null
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-
-  const handleSubmit = async (e) => { // Removed : React.FormEvent
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -40,34 +38,37 @@ function AddGroceryPage() {
     try {
       const newGrocery = {
         name: name.trim(),
-        amount: Number(amount), // Convert amount to number
+        amount: Number(amount),
         unit: unit,
-        expiry: expiry, // Keep as string for now, can convert to Date if needed by Firebase rules
-        description: description.trim() || null, // Store as null if empty
-        imageUrl: imageUrl.trim() || null,       // Store as null if empty
-        uploader: currentUser ? { // Populate uploader if user is logged in
-          name: currentUser.displayName || currentUser.email || 'Anonymous', // Use displayName, email, or fallback
+        expiry: expiry,
+        description: description.trim() || null,
+        imageUrl: imageUrl.trim() || null,
+        uploader: currentUser ? {
+          name: currentUser.displayName || currentUser.email || 'Anonymous',
           avatarUrl: currentUser.photoURL || null,
-        } : null, // If no current user, uploader is null
-        claimed: false, // Default to not claimed
-        createdAt: serverTimestamp(), // Firestore timestamp
+        } : null,
+        claimed: false,
+        createdAt: serverTimestamp(),
+        // --- ADD CATEGORY TO THE OBJECT SENT TO FIRESTORE ---
+        category: category.trim() || null, // Store as null if empty
       };
 
       await addDoc(collection(db, 'groceries'), newGrocery);
       setSuccess('Grocery added successfully!');
-      // Optionally clear form or navigate
+      // Optionally clear form
       setName('');
       setAmount('');
       setUnit('pcs');
       setExpiry('');
       setDescription('');
       setImageUrl('');
+      // --- CLEAR CATEGORY AFTER SUBMISSION ---
+      setCategory('');
 
       // Optional: Navigate back or to a grocery list after successful submission
-      // navigate('/'); // Example: navigate to home page
-    } catch (err) { // <<< MINIMAL CHANGE HERE: Removed ': any'
+      // navigate('/');
+    } catch (err) {
       console.error("Error adding document: ", err);
-      // Ensure err is treated as an object with a message property or fallback
       setError('Failed to add grocery: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
@@ -102,7 +103,7 @@ function AddGroceryPage() {
             type="number"
             id="amount"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)} // Keep as string for input, convert to Number when submitting
+            onChange={(e) => setAmount(e.target.value)}
             required
             min="0"
             style={addGroceryPageStyles.input}
@@ -136,6 +137,34 @@ function AddGroceryPage() {
             <option value="Tsp">Tsp</option>
           </select>
         </div>
+
+        {/* --- NEW CATEGORY FORM ELEMENT --- */}
+        <div style={addGroceryPageStyles.formGroup}>
+          <label htmlFor="category" style={addGroceryPageStyles.label}>Category (Optional):</label>
+          <select
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            style={addGroceryPageStyles.input}
+          >
+            <option value="">-- Select a Category --</option> {/* Optional: Default empty option */}
+            <option value="Dairy & Alternatives">Dairy & Alternatives</option>
+            <option value="Fruits">Fruits</option>
+            <option value="Vegetables">Vegetables</option>
+            <option value="Meat & Poultry">Meat & Poultry</option>
+            <option value="Seafood">Seafood</option>
+            <option value="Grains, Pasta & Bread">Grains, Pasta & Bread</option>
+            <option value="Canned & Packaged Goods">Canned & Packaged Goods</option>
+            <option value="Baking & Spices">Baking & Spices</option>
+            <option value="Beverages">Beverages</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Frozen Foods">Frozen Foods</option>
+            <option value="Condiments & Sauces">Condiments & Sauces</option>
+            <option value="Oils & Vinegars">Oils & Vinegars</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        {/* --- END NEW CATEGORY FORM ELEMENT --- */}
 
         <div style={addGroceryPageStyles.formGroup}>
           <label htmlFor="expiry" style={addGroceryPageStyles.label}>Expiry Date:*</label>
@@ -181,7 +210,7 @@ function AddGroceryPage() {
   );
 }
 
-const addGroceryPageStyles = {
+const addGroceryPageStyles: { [key: string]: CSSProperties } = {
   container: {
     maxWidth: '600px',
     margin: '40px auto',

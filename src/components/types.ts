@@ -6,7 +6,7 @@ export type Grocery = {
   amount: number;
   unit: string;
   expiry: string;
-  
+  catagory: string;
   // Make these properties optional and allow 'null'
   // description?: string | null; // Can be string or null
   // imageUrl?: string | null;    // Can be string or null
