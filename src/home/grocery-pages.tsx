@@ -13,6 +13,13 @@ import {
 } from '../components/ui/card';
 
 function GroceryCard({ grocery }: { grocery: Grocery }) {
+  let grocery_amount: string = `${grocery.amount}`
+  if (grocery.unit !== "\"\"") {
+    grocery_amount = `${grocery.amount} ${grocery.unit}`
+  };
+
+  const grocery_description = `${grocery.description} (${grocery_amount})`
+
   return (
     <Card className="flex flex-col overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
       <CardContent className="p-0">
@@ -28,7 +35,7 @@ function GroceryCard({ grocery }: { grocery: Grocery }) {
       </CardContent>
       <CardHeader className="flex-grow">
         <CardTitle className="font-headline text-xl">{grocery.name}</CardTitle>
-        <CardDescription>{grocery.description}</CardDescription>
+        <CardDescription>{grocery_description}</CardDescription>
       </CardHeader>
       {/* <CardFooter className="flex justify-between items-center">
         <div className="flex items-center gap-2">

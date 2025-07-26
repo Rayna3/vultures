@@ -2,11 +2,9 @@ export type Grocery = {
   id: string;
   name: string;
   description: string;
-  imageUrl: string;
-  uploader: {
-    name: string;
-    avatarUrl: string;
-  };
+  uploader: string;
+  amount: number;
+  unit: string;
   claimed: boolean;
   createdAt: any; // Using `any` for Firestore ServerTimestamp
 };
