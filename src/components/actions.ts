@@ -33,11 +33,11 @@ export async function addGrocery(formData: FormData) {
   const newGrocery = {
     name: validatedFields.data.name,
     description: validatedFields.data.description,
-    imageUrl: 'https://placehold.co/600x400.png',
-    uploader: {
-      name: 'CurrentUser', // This would be dynamic in a real app with auth
-      avatarUrl: 'https://placehold.co/40x40.png',
-    },
+    // imageUrl: 'https://placehold.co/600x400.png',
+    // uploader: {
+    //   name: 'CurrentUser', // This would be dynamic in a real app with auth
+    //   avatarUrl: 'https://placehold.co/40x40.png',
+    // },
     claimed: false,
     createdAt: serverTimestamp(),
   };

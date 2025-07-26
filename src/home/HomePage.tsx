@@ -1,9 +1,36 @@
-import React, {CSSProperties} from 'react';
+import React, {useState, useEffect, CSSProperties} from 'react';
 import { useAuth } from '../auth/AuthProvider'; // To access current user and logout
 import { auth } from '../firebase/config'; // To perform logout
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom'; // For programmatic navigation
-import { getAvailableGroceries } from '../components/grocery-actions';
+import HomeGroceryPage from './grocery-pages';
+
+function FetchGroceryPage() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const result = await HomeGroceryPage(); // Call the async function
+        setData(result);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []); // Empty dependency array means this effect runs once after initial render
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return data
+}
 
 function HomePage() {
   const { currentUser } = useAuth();
@@ -23,16 +50,16 @@ function HomePage() {
       }
     }
   };
+  const groceries = FetchGroceryPage(); 
 
   return (
     <div style={homePageStyles.container}>
       <div style={homePageStyles.header}>
-        <h1>Welcome to the Food Share!</h1>
-
+        <h1>Welcome to Vultures!</h1>
         <button onClick={() => navigate('/recipes')} style={{ ...homePageStyles.logoutButton, backgroundColor: '#6c757d' }}>
             Go to Recipe Finder
         </button>
-
+        
         {currentUser && <p>Logged in as: <strong>{currentUser.email}</strong></p>}
         <button onClick={handleLogout} style={homePageStyles.logoutButton}>
           Logout
@@ -47,9 +74,10 @@ function HomePage() {
           <li>Get recipe recommendations</li>
           <li>Manage your shared and claimed items</li>
         </ul>
-        <p>Start by navigating to the "Upload" or "Browse" sections!</p>
       </div>
       {/* You'll add links to other features here later */}
+
+      <FetchGroceryPage />
     </div>
   );
 }
