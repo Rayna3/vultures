@@ -1,4 +1,4 @@
-import React, {useState, useEffect, CSSProperties} from 'react';
+import React, {useState, useEffect, CSSProperties, ReactElement} from 'react';
 import { useAuth } from '../auth/AuthProvider'; // To access current user and logout
 import { auth } from '../firebase/config'; // To perform logout
 import { signOut } from 'firebase/auth';
@@ -6,9 +6,9 @@ import { useNavigate } from 'react-router-dom'; // For programmatic navigation
 import HomeGroceryPage from './grocery-pages';
 
 function FetchGroceryPage() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<ReactElement | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any | null >(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -50,7 +50,6 @@ function HomePage() {
       }
     }
   };
-  const groceries = FetchGroceryPage(); 
 
   return (
     <div style={homePageStyles.container}>
