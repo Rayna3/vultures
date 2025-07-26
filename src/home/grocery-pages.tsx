@@ -95,9 +95,9 @@ export default async function HomeGroceryPage() {
             <h1 className="text-3xl md:text-4xl font-bold font-headline text-foreground">Available Groceries</h1>
             <p className="text-muted-foreground mt-1">Claim items your coworkers have shared.</p>
           </div>
-          {/* <div className="flex gap-2 sm:gap-4">
-            <AddGroceryButton />
-          </div> */}
+          <div className="flex gap-2 sm:gap-4">
+            {/* <AddGroceryButton /> */}
+          </div>
         </div>
         <GroceryGrid initialGroceries={groceries} />
       </main>

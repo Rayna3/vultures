@@ -22,8 +22,6 @@ const addGrocerySchema = z.object({
 });
 
 export async function addGrocery(formData: FormData) {
-  // const { currentUser } = useAuth();
-
   const validatedFields = addGrocerySchema.safeParse({
     name: formData.get('name'),
     description: formData.get('description'),
