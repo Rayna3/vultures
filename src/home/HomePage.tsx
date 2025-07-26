@@ -1,8 +1,8 @@
 import React, {useState, useEffect, CSSProperties, ReactElement} from 'react';
-import { useAuth } from '../auth/AuthProvider'; // To access current user and logout
-import { auth } from '../firebase/config'; // To perform logout
+import { useAuth } from '../auth/AuthProvider';
+import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom'; // For programmatic navigation
+import { useNavigate } from 'react-router-dom';
 import HomeGroceryPage from './grocery-pages';
 
 function FetchGroceryPage() {
@@ -14,7 +14,7 @@ function FetchGroceryPage() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const result = await HomeGroceryPage(); // Call the async function
+        const result = await HomeGroceryPage();
         setData(result);
       } catch (err) {
         setError(err);
@@ -24,7 +24,7 @@ function FetchGroceryPage() {
     };
 
     loadData();
-  }, []); // Empty dependency array means this effect runs once after initial render
+  }, []);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
@@ -39,13 +39,12 @@ function HomePage() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/login'); // Redirect to login after logout
+      navigate('/login');
     } catch (error) {
       console.error('Logout Error:', error);
-      if (error instanceof Error) { // Type guard: check if 'error' is an instance of Error
+      if (error instanceof Error) {
         alert('Failed to log out: ' + error.message);
       } else {
-        // If it's not an Error object, provide a generic message
         alert('Failed to log out: An unknown error occurred.');
       }
     }
@@ -57,6 +56,10 @@ function HomePage() {
         <h1>Welcome to Vultures!</h1>
         <button onClick={() => navigate('/recipes')} style={{ ...homePageStyles.logoutButton, backgroundColor: '#6c757d' }}>
             Go to Recipe Finder
+        </button>
+        {/* Changed text and navigation path for adding groceries */}
+        <button onClick={() => navigate('/add-grocery')} style={{ ...homePageStyles.logoutButton, backgroundColor: '#28a745', marginLeft: '10px' }}>
+            Add New Grocery
         </button>
         
         {currentUser && <p>Logged in as: <strong>{currentUser.email}</strong></p>}
@@ -112,7 +115,6 @@ const homePageStyles: { [key: string]: CSSProperties } = {
     lineHeight: '1.6',
     color: '#333',
   },
-  // Add more styles as you build out features
 };
 
 export default HomePage;

@@ -15,4 +15,5 @@ export type Grocery = {
   } | null;
   claimed?: boolean | null;    // Can be boolean or null
   createdAt?: any | null;      // Can be any (like Firestore Timestamp) or null
+  expiry: string;
 };
