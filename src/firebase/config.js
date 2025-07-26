@@ -1,17 +1,16 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+// src/firebase/config.js
 
-// 1. Import the Authentication module
+// 1. Core Firebase App Initialization (from 'firebase/app')
+import { initializeApp } from "firebase/app";
+
+// 2. Individual Firebase Service Imports (from their specific paths)
+import { getAnalytics } from "firebase/analytics";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-// Also import Firestore and Storage if you plan to use them as well
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// REPLACE WITH YOUR ACTUAL CONFIG FROM FIREBASE CONSOLE
 const firebaseConfig = {
   apiKey: "AIzaSyA3m7LgXku-tY5PvtUwpNOxZF0m4fLuEwQ",
   authDomain: "vultures-b5e31.firebaseapp.com",
@@ -25,21 +24,16 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-
-// 2. Initialize the Authentication service
 const auth = getAuth(app);
-
-// Initialize Firestore and Storage services if you need them
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-
-// 3. Export the initialized services and onAuthStateChanged
+// Export the initialized services and relevant functions
 export {
-  app,
-  analytics,
-  auth, // Export the auth service
-  db,   // Export Firestore
-  storage, // Export Storage
-  onAuthStateChanged // Export the onAuthStateChanged function for convenience
+  app,                // The main Firebase app instance (less common to directly use, but good to have)
+  analytics,          // The Analytics service instance
+  auth,               // The Authentication service instance
+  db,                 // The Firestore database service instance
+  storage,            // The Storage service instance
+  onAuthStateChanged  // The onAuthStateChanged listener function from 'firebase/auth'
 };
