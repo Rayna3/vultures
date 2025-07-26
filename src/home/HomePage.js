@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthProvider'; // To access current user and lo
 import { auth } from '../firebase/config'; // To perform logout
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom'; // For programmatic navigation
+import { getAvailableGroceries } from '../components/grocery-actions';
 
 function HomePage() {
   const { currentUser } = useAuth();
