@@ -7,20 +7,20 @@ import { Grocery } from '../components/types';
 function Recipes() {
   const [commonFridgeItems, setCommonFridgeItems] = useState<Grocery[]>([]);
   const [personalIngredientsInput, setPersonalIngredientsInput] = useState('');
-  const [combinedIngredients, setCombinedIngredients] = useState<string[]>([]);
+  // Change combinedIngredients to store objects indicating source
+  const [combinedIngredients, setCombinedIngredients] = useState<{name: string, isPersonal: boolean}[]>([]);
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [unusedIngredients, setUnusedIngredients] = useState<string[]>([]);
 
   // --- Step 3: Implement fetching "common fridge" ingredients from Firestore ---
   useEffect(() => {
     const fetchCommonFridgeItems = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'fridgeItems'));
+        const querySnapshot = await getDocs(collection(db, 'groceries'));
         const items: Grocery[] = [];
         querySnapshot.forEach((doc) => {
-          // Assuming doc.data() matches the Grocery type
-          // Ensure 'id' is correctly added from doc.id, and type assertion for the rest
           items.push({ id: doc.id, ...doc.data() as Omit<Grocery, 'id'> });
         });
         setCommonFridgeItems(items);
@@ -36,35 +36,55 @@ function Recipes() {
 
   // --- Update combined ingredients whenever commonFridgeItems or personalIngredientsInput changes ---
   useEffect(() => {
-    const commonNames = commonFridgeItems.map(item => item.name.toLowerCase());
-    const personalNames = personalIngredientsInput.split(',').map(item => item.trim().toLowerCase()).filter(name => name.length > 0);
-    const uniqueCombined = Array.from(new Set([...commonNames, ...personalNames]));
-    setCombinedIngredients(uniqueCombined);
-    console.log('Combined ingredients for API:', uniqueCombined.join(', '));
+    const uniqueCombined = new Map<string, {name: string, isPersonal: boolean}>();
+
+    // Add common fridge items
+    commonFridgeItems.forEach(item => {
+      const lowerName = item.name.toLowerCase();
+      if (!uniqueCombined.has(lowerName)) { // Add only if not already present
+        uniqueCombined.set(lowerName, { name: item.name, isPersonal: false });
+      }
+    });
+
+    // Add personal ingredients, prioritizing personal if names overlap
+    personalIngredientsInput.split(',')
+      .map(item => item.trim())
+      .filter(name => name.length > 0)
+      .forEach(name => {
+        const lowerName = name.toLowerCase();
+        // Always add/overwrite with personal, so it shows up as bold
+        uniqueCombined.set(lowerName, { name: name, isPersonal: true });
+      });
+
+    setCombinedIngredients(Array.from(uniqueCombined.values()));
+    console.log('Combined ingredients for API (with source):', Array.from(uniqueCombined.values()).map(item => item.name).join(', '));
   }, [commonFridgeItems, personalIngredientsInput]);
 
   // --- Step 5: Integrate with a free recipes API ---
   const SPOONACULAR_API_KEY = 'e3188e777c734f378968cdb8cddfa03f'; // <<< REPLACE WITH YOUR ACTUAL KEY
 
   const fetchRecipes = async () => {
-    if (combinedIngredients.length === 0) {
+    // Extract only names for the API call
+    const ingredientsForApi = combinedIngredients.map(item => item.name);
+
+    if (ingredientsForApi.length === 0) {
       setError('Please add some ingredients to find recipes.');
       setRecipes([]);
+      setUnusedIngredients([]);
       return;
     }
 
-    // Check if API key is provided
     if (!SPOONACULAR_API_KEY) {
       setError('Spoonacular API key is not configured. Please get one from spoonacular.com/developers');
       return;
     }
 
-
     setLoading(true);
     setError('');
-    setRecipes([]); // Clear previous recipes
+    setRecipes([]);
+    setUnusedIngredients([]);
 
-    const ingredientsString = combinedIngredients.join(',');
+    const ingredientsString = ingredientsForApi.join(',');
     const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredientsString}&number=10&apiKey=${SPOONACULAR_API_KEY}`;
 
     try {
@@ -74,8 +94,43 @@ function Recipes() {
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setRecipes(data);
-      console.log('Fetched recipes:', data);
+
+      // --- MINIMAL CHANGE START ---
+      // Augment the recipe data to include 'isPersonal' flag for used ingredients
+      const augmentedRecipes = data.map((recipe: any) => {
+          const augmentedUsedIngredients = recipe.usedIngredients.map((usedIng: any) => {
+              const isPersonalSource = combinedIngredients.some(
+                  item => item.isPersonal && item.name.toLowerCase() === usedIng.name.toLowerCase()
+              );
+              return {
+                  ...usedIng,
+                  isPersonal: isPersonalSource // Add the flag
+              };
+          });
+          return {
+              ...recipe,
+              usedIngredients: augmentedUsedIngredients // Replace with augmented list
+          };
+      });
+      setRecipes(augmentedRecipes);
+      // --- MINIMAL CHANGE END ---
+      console.log('Fetched recipes:', augmentedRecipes); // Log augmented data
+
+      const usedIngredientNamesInResults = new Set<string>();
+      // Use the augmented recipes to get used names for the unused calculation
+      augmentedRecipes.forEach((recipe: any) => {
+        recipe.usedIngredients.forEach((ing: any) => {
+          usedIngredientNamesInResults.add(ing.name.toLowerCase());
+        });
+      });
+
+      const currentUnused = combinedIngredients
+        .filter(item => !usedIngredientNamesInResults.has(item.name.toLowerCase()))
+        .map(item => item.name); // Get only the name for display
+
+      setUnusedIngredients(currentUnused);
+      console.log('Unused ingredients:', currentUnused);
+
     } catch (err: any) {
       console.error('Error fetching recipes:', err);
       setError(`Failed to fetch recipes: ${err.message || 'An unknown error occurred'}`);
@@ -110,7 +165,17 @@ function Recipes() {
           style={styles.input}
         />
         <p style={styles.ingredientList}>
-          **Combined Ingredients for Search:** {combinedIngredients.length > 0 ? combinedIngredients.join(', ') : 'None'}
+          **Combined Ingredients for Search:**{' '}
+          {combinedIngredients.length > 0 ? (
+            combinedIngredients.map((item, index) => (
+              <React.Fragment key={item.name}>
+                {item.isPersonal ? <strong>{item.name}</strong> : item.name}
+                {index < combinedIngredients.length - 1 && ', '}
+              </React.Fragment>
+            ))
+          ) : (
+            'None'
+          )}
         </p>
       </div>
 
@@ -128,11 +193,19 @@ function Recipes() {
             <img src={recipe.image} alt={recipe.title} style={styles.recipeImage} />
             {recipe.usedIngredientCount > 0 && (
               <p>
-                **Using:** {recipe.usedIngredients.map((ing: any) => ing.name).join(', ')}
+                Using:{' '}
+                {/* --- MINIMAL CHANGE START --- */}
+                {recipe.usedIngredients.map((ing: any, idx: number) => (
+                  <React.Fragment key={ing.id || ing.name}>
+                    {ing.isPersonal ? <strong>{ing.name}</strong> : ing.name}
+                    {idx < recipe.usedIngredients.length - 1 && ', '}
+                  </React.Fragment>
+                ))}
+                {/* --- MINIMAL CHANGE END --- */}
               </p>
             )}
             <p>Missing Ingredients: {recipe.missedIngredientCount}</p>
-            <a href={`https://spoonacular.com/recipes/${recipe.slug}-${recipe.id}`} target="_blank" rel="noopener noreferrer" style={styles.viewRecipeLink}>
+            <a href={`https://spoonacular.com/recipes/${recipe.title.toLowerCase().replace(/\s/g, '-')}-${recipe.id}`} target="_blank" rel="noopener noreferrer" style={styles.viewRecipeLink}>
               View Recipe on Spoonacular
             </a>
           </div>
@@ -141,6 +214,19 @@ function Recipes() {
           <p>No recipes found with these ingredients. Try adding more!</p>
         )}
       </div>
+
+      {/* Ingredients Not Used Section */}
+      {combinedIngredients.length > 0 && !loading && recipes.length > 0 && unusedIngredients.length > 0 && (
+        <div style={styles.section}>
+          <h2 style={styles.subHeader}>Ingredients Not Used:</h2>
+          <p style={styles.ingredientList}>
+            {unusedIngredients.join(', ')}
+          </p>
+          <p style={styles.hintText}>
+            These ingredients were available but not required for any of the recipes found.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -181,6 +267,12 @@ const styles: { [key: string]: CSSProperties } = {
     fontSize: '14px',
     color: '#777',
     marginTop: '5px',
+  },
+  hintText: {
+    fontSize: '12px',
+    color: '#999',
+    marginTop: '5px',
+    fontStyle: 'italic',
   },
   button: {
     padding: '12px 25px',
