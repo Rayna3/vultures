@@ -18,7 +18,7 @@ function GroceryCard({ grocery }: { grocery: Grocery }) {
     grocery_amount = `${grocery.amount} ${grocery.unit}`
   };
 
-  const grocery_description = `${grocery.description} (${grocery_amount})`
+  const grocery_description = `${grocery.description} (${grocery_amount}) (expires ${grocery.expiry})`
 
   return (
     <Card className="flex flex-col overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
