@@ -7,4 +7,5 @@ export type Grocery = {
   unit: string;
   claimed: boolean;
   createdAt: any; // Using `any` for Firestore ServerTimestamp
+  expiry: string;
 };

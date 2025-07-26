@@ -17,7 +17,8 @@ const addGrocerySchema = z.object({
   name: z.string().min(1, 'Name must have at least 1 character'),
   description: z.string().min(0),
   amount: z.number().min(1, 'Amount must be at least 1'),
-  unit: z.string().min(0)
+  unit: z.string().min(0),
+  expiry: z.string().min(1, 'Expiration date must be listed')
 });
 
 export async function addGrocery(formData: FormData) {
@@ -27,7 +28,8 @@ export async function addGrocery(formData: FormData) {
     name: formData.get('name'),
     description: formData.get('description'),
     quantity: formData.get('amount'),
-    units: formData.get('unit')
+    units: formData.get('unit'),
+    expiry: formData.get('expiry')
   });
 
   if (!validatedFields.success) {
@@ -44,6 +46,7 @@ export async function addGrocery(formData: FormData) {
     units: validatedFields.data.unit,
     claimed: false,
     createdAt: serverTimestamp(),
+    expiry: validatedFields.data.expiry
   };
 
   await addDoc(collection(db, 'groceries'), newGrocery);
