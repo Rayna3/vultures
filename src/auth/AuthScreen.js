@@ -8,6 +8,7 @@ import {
   GoogleAuthProvider, // <--- Import GoogleAuthProvider
   signInWithRedirect,    // <--- Import signInWithRedirect
 } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
 function AuthScreen() {
   const [email, setEmail] = useState('');
@@ -15,6 +16,8 @@ function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,6 +30,7 @@ function AuthScreen() {
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
       }
+      navigate("/");
     } catch (err) {
       console.error('Email/Password Auth Error:', err);
       // More user-friendly error messages
