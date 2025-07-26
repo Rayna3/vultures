@@ -111,13 +111,13 @@ function AuthScreen() {
         <p style={styles.orDivider}>OR</p> {/* Separator */}
 
         {/* Google Sign-In Button */}
-        <button
+        {/* <button
           onClick={handleGoogleSignIn}
           disabled={loading}
           style={{ ...styles.button, ...styles.googleButton }} // Apply Google-specific styles
         >
           {loading ? 'Processing...' : 'Sign In with Google'}
-        </button>
+        </button> */}
 
         <p style={styles.toggleText}>
           {isLogin ? "Don't have an account? " : "Already have an account? "}
