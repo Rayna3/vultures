@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {CSSProperties} from 'react';
 import { useAuth } from '../auth/AuthProvider'; // To access current user and logout
 import { auth } from '../firebase/config'; // To perform logout
 import { signOut } from 'firebase/auth';
@@ -15,7 +15,12 @@ function HomePage() {
       navigate('/login'); // Redirect to login after logout
     } catch (error) {
       console.error('Logout Error:', error);
-      alert('Failed to log out: ' + error.message);
+      if (error instanceof Error) { // Type guard: check if 'error' is an instance of Error
+        alert('Failed to log out: ' + error.message);
+      } else {
+        // If it's not an Error object, provide a generic message
+        alert('Failed to log out: An unknown error occurred.');
+      }
     }
   };
 
@@ -23,6 +28,11 @@ function HomePage() {
     <div style={homePageStyles.container}>
       <div style={homePageStyles.header}>
         <h1>Welcome to the Food Share!</h1>
+
+        <button onClick={() => navigate('/recipes')} style={{ ...homePageStyles.logoutButton, backgroundColor: '#6c757d' }}>
+            Go to Recipe Finder
+        </button>
+
         {currentUser && <p>Logged in as: <strong>{currentUser.email}</strong></p>}
         <button onClick={handleLogout} style={homePageStyles.logoutButton}>
           Logout
@@ -44,7 +54,7 @@ function HomePage() {
   );
 }
 
-const homePageStyles = {
+const homePageStyles: { [key: string]: CSSProperties } = {
   container: {
     padding: '20px',
     fontFamily: 'Arial, sans-serif',

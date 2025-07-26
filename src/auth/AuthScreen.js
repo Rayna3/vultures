@@ -4,9 +4,7 @@ import React, { useState } from 'react';
 import { auth } from '../firebase/config'; // Import auth from your Firebase config
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  GoogleAuthProvider, // <--- Import GoogleAuthProvider
-  signInWithRedirect,    // <--- Import signInWithRedirect
+  signInWithEmailAndPassword
 } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
@@ -49,34 +47,34 @@ function AuthScreen() {
   };
 
   // --- NEW: Handle Google Sign-In ---
-  const handleGoogleSignIn = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      const provider = new GoogleAuthProvider(); // Create a new Google Auth provider instance
-      await signInWithRedirect(auth, provider); // Open Google sign-in popup
-      // User will be redirected by AuthProvider/PrivateRoute upon successful sign-in
-    } catch (err) {
-      console.error('Google Auth Error:', err);
-      // Handle specific Google Auth errors
-      switch (err.code) {
-        case 'auth/popup-closed-by-user':
-          setError('Google sign-in window closed. Please try again.');
-          break;
-        case 'auth/cancelled-popup-request':
-          setError('Another sign-in request is already in progress.');
-          break;
-        case 'auth/operation-not-allowed':
-          setError('Google sign-in is not enabled for this project.');
-          break;
-        // Add more specific Google Auth error handling if needed
-        default:
-          setError('Failed to sign in with Google. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const handleGoogleSignIn = async () => {
+  //   setError('');
+  //   setLoading(true);
+  //   try {
+  //     const provider = new GoogleAuthProvider(); // Create a new Google Auth provider instance
+  //     await signInWithRedirect(auth, provider); // Open Google sign-in popup
+  //     // User will be redirected by AuthProvider/PrivateRoute upon successful sign-in
+  //   } catch (err) {
+  //     console.error('Google Auth Error:', err);
+  //     // Handle specific Google Auth errors
+  //     switch (err.code) {
+  //       case 'auth/popup-closed-by-user':
+  //         setError('Google sign-in window closed. Please try again.');
+  //         break;
+  //       case 'auth/cancelled-popup-request':
+  //         setError('Another sign-in request is already in progress.');
+  //         break;
+  //       case 'auth/operation-not-allowed':
+  //         setError('Google sign-in is not enabled for this project.');
+  //         break;
+  //       // Add more specific Google Auth error handling if needed
+  //       default:
+  //         setError('Failed to sign in with Google. Please try again.');
+  //     }
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   // --- END NEW ---
 
   return (
