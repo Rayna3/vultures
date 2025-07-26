@@ -4,11 +4,12 @@ import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import HomeGroceryPage from './grocery-pages';
+import ChatBox from '../chatbot/chatbox';  // ← import your ChatBox
 
 function FetchGroceryPage() {
   const [data, setData] = useState<ReactElement | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<any | null >(null);
+  const [error, setError] = useState<any | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -22,17 +23,15 @@ function FetchGroceryPage() {
         setLoading(false);
       }
     };
-
     loadData();
   }, []);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
-
-  return data
+  return data;
 }
 
-function HomePage() {
+export default function HomePage() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -54,8 +53,11 @@ function HomePage() {
     <div style={homePageStyles.container}>
       <div style={homePageStyles.header}>
         <h1>Welcome to Vultures!</h1>
-        <button onClick={() => navigate('/recipes')} style={{ ...homePageStyles.logoutButton, backgroundColor: '#6c757d' }}>
-            Go to Recipe Finder
+        <button
+          onClick={() => navigate('/recipes')}
+          style={{ ...homePageStyles.logoutButton, backgroundColor: '#6C757D' }}
+        >
+          Go to Recipe Finder
         </button>
         {/* Changed text and navigation path for adding groceries */}
         <button onClick={() => navigate('/add-grocery')} style={{ ...homePageStyles.logoutButton, backgroundColor: '#28a745', marginLeft: '10px' }}>
@@ -77,9 +79,18 @@ function HomePage() {
           <li>Manage your shared and claimed items</li>
         </ul>
       </div>
-      {/* You'll add links to other features here later */}
 
-      <FetchGroceryPage />
+      {/* Grocery Page */}
+      <div style={homePageStyles.section}>
+        <h2>Available Groceries</h2>
+        <FetchGroceryPage />
+      </div>
+
+      {/* ChatBox Section */}
+      <div style={homePageStyles.chatSection}>
+        <h2>Ask FridgeBot</h2>
+        <ChatBox />
+      </div>
     </div>
   );
 }
@@ -90,7 +101,7 @@ const homePageStyles: { [key: string]: CSSProperties } = {
     fontFamily: 'Arial, sans-serif',
     maxWidth: '800px',
     margin: '0 auto',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     borderRadius: '8px',
     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)',
     marginTop: '40px',
@@ -114,7 +125,14 @@ const homePageStyles: { [key: string]: CSSProperties } = {
   content: {
     lineHeight: '1.6',
     color: '#333',
+    marginBottom: '40px',
+  },
+  section: {
+    marginBottom: '40px',
+  },
+  chatSection: {
+    borderTop: '1px solid #eee',
+    paddingTop: '20px',
+    marginBottom: '40px',
   },
 };
-
-export default HomePage;

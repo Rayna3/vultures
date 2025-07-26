@@ -1,8 +1,8 @@
-// src/components/types.ts (or similar)
-
 export type Grocery = {
   id: string;
   name: string;
+  description: string;
+  uploader: string;
   amount: number;
   unit: string;
   
