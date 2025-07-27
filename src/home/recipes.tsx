@@ -80,7 +80,7 @@ function Recipes() {
   }, [commonFridgeItems, personalIngredientsInput]); // Dependency on commonFridgeItems
 
   // --- Step 5: Integrate with a free recipes API ---
-  const SPOONACULAR_API_KEY = 'e3188e777c734f378968cdb8cddfa03f'; // <<< REPLACE WITH YOUR ACTUAL KEY
+  const SPOONACULAR_API_KEY = process.env.REACT_APP_SPOONACULAR_API_KEY; // <<< REPLACE WITH YOUR ACTUAL KEY
 
   const fetchRecipes = async () => {
     // Extract only names for the API call
